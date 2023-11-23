@@ -79,4 +79,4 @@ if(response == "n"):
     exit()
 
 print("Saving Map...")
-np.savetxt("newLevel.txt", tileList.astype(int), fmt='%d')
+np.savetxt("newLevel.txt", tileList.T, fmt='%d')
