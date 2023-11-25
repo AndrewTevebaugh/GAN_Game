@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-import movement as mv
+import src.game.movement as mv
 import src.utils.levelHelper as lh
 from src.utils.constants import *
 
@@ -34,7 +34,7 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
-    (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys)
+    (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
 
   def render(self):
     # Draws all of the map tiles
