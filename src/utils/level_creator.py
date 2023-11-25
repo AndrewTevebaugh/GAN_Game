@@ -1,6 +1,5 @@
 import pygame
 import numpy as np
-from enum import IntEnum
 import levelHelper as lh
 
 current_type = lh.tileType.OPEN
