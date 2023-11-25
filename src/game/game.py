@@ -1,4 +1,6 @@
 import pygame
+import numpy as np
+import src.utils.levelHelper as lh
 
 class Game:
   def __init__(self):
@@ -12,7 +14,11 @@ class Game:
     self.screen = pygame.display.set_mode((self.w, self.h))
     pygame.display.set_caption("GAN Game")
     self.clock = pygame.time.Clock()
-    self.screen.fill("blue")
+    #TODO Add a level loader
+    self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
+    # self.map = np.zeros((20,20), dtype=int)
+    # for (row_idx, col_idx), tile in np.ndenumerate(tileList):
+    #   self.map[row_idx][col_idx] = tile 
     self.is_running = True
 
   def handle_events(self):
@@ -53,6 +59,8 @@ class Game:
 
   def render(self):
     self.screen.fill("blue")
+    for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
+      pygame.draw.rect(self.screen, lh.getTileColor(tile), (col_idx*25, row_idx*25, 25, 25))
     pygame.draw.rect(self.screen, "pink", (self.playerX, self.playerY, self.playerW, self.playerH))
     # for tile in self.map:
     #   pygame.draw.rect()
