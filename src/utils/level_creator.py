@@ -1,22 +1,9 @@
 import pygame
 import numpy as np
 from enum import IntEnum
+import levelHelper as lh
 
-GRAY = (99,99,99)
-BROWN = (69, 58, 34)
-BLACK = (0, 0, 0)
-TEAL = (13, 158, 190)
-RED = (102, 6, 6)
-GOLD = (194, 193, 75)
-
-class tileType(IntEnum):
-  OPEN = 0
-  WALL = 1
-  DOOR = 2
-  HAZARD = 3
-  COIN = 4
-
-current_type = tileType.OPEN
+current_type = lh.tileType.OPEN
 tileList = np.zeros((20,20), dtype=int)
 pygame.init()
 pygame.display.set_caption("Level Maker - Click to place, Scroll to change, Close window to save")
@@ -24,28 +11,17 @@ screen = pygame.display.set_mode((500, 500))
 clock = pygame.time.Clock()
 is_running = True
 
-def getTileColor(tile):
-  if(tile == tileType.WALL):
-    return BLACK
-  elif(tile == tileType.DOOR):
-    return TEAL
-  elif(tile == tileType.HAZARD):
-    return RED
-  elif(tile == tileType.COIN):
-    return GOLD
-  else:
-    return BROWN
 
 def update_screen(clicked):
   (y, x) = pygame.mouse.get_pos()
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     if(x > col_idx*25 and x <= (col_idx + 1)*25 and y > row_idx*25 and y <= (row_idx + 1)*25):
-      pygame.draw.rect(screen, GRAY, (row_idx*25, col_idx*25, 25, 25))
-      pygame.draw.rect(screen, getTileColor(current_type), (row_idx*25, col_idx*25, 25, 25), border_radius=8)
+      pygame.draw.rect(screen, lh.GRAY, (row_idx*25, col_idx*25, 25, 25))
+      pygame.draw.rect(screen, lh.getTileColor(current_type), (row_idx*25, col_idx*25, 25, 25), border_radius=8)
       if(clicked):
         tileList[row_idx][col_idx] = int(current_type)
     else:
-      pygame.draw.rect(screen, getTileColor(tile), (row_idx*25, col_idx*25, 25, 25))
+      pygame.draw.rect(screen, lh.getTileColor(tile), (row_idx*25, col_idx*25, 25, 25))
     
 clicked = False
 while is_running:
