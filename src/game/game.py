@@ -1,19 +1,13 @@
 import pygame
 import numpy as np
-# import movement as mv
+import movement as mv
 import src.utils.levelHelper as lh
+from src.utils.constants import *
 
 class Game:
   def __init__(self):
-    # Initialize constants
-    self.w = 500
-    self.h = 500
-    self.playerW = 25
-    self.playerH = 25
-    self.playerVelocity = 0.2
-
     # Set up pygame stuff
-    self.screen = pygame.display.set_mode((self.w, self.h))
+    self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("GAN Game")
     self.clock = pygame.time.Clock()
 
@@ -40,31 +34,7 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
-    # (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys)
-
-    if(self.keys[pygame.K_w]):
-      self.playerY -= 25.0 * self.playerVelocity
-      # Very basic boundary check
-      if(self.playerY < 0):
-        self.playerY = 0
-
-    if(self.keys[pygame.K_s]):
-      self.playerY += 25.0 * self.playerVelocity
-      # Very basic boundary check
-      if(self.playerY > (self.h - self.playerH)):
-        self.playerY = (self.h - self.playerH)
-
-    if(self.keys[pygame.K_d]):
-      self.playerX += 25.0 * self.playerVelocity
-      # Very basic boundary check
-      if(self.playerX > (self.w - self.playerW)):
-        self.playerX = (self.w - self.playerW)
-
-    if(self.keys[pygame.K_a]):
-      self.playerX -= 25.0 * self.playerVelocity
-      # Very basic boundary check
-      if(self.playerX < 0):
-        self.playerX = 0
+    (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys)
 
   def render(self):
     # Draws all of the map tiles
@@ -72,7 +42,7 @@ class Game:
       pygame.draw.rect(self.screen, lh.getTileColor(tile), (col_idx*25, row_idx*25, 25, 25))
 
     # Draws the player
-    pygame.draw.rect(self.screen, "pink", (self.playerX, self.playerY, self.playerW, self.playerH))
+    pygame.draw.rect(self.screen, "pink", (self.playerX, self.playerY, PLAYER_WIDTH, PLAYER_HEIGHT))
 
     #actually renders the updates to the screen
     pygame.display.update()
