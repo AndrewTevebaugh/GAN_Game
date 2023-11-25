@@ -29,9 +29,9 @@ while is_running:
       is_running = False
     elif event.type == pygame.MOUSEBUTTONDOWN:
       if event.button == 4:  # Scroll wheel up
-        current_type = (5 + int(current_type) + 1)%5
+        current_type = (6 + int(current_type) + 1)%6
       elif event.button == 5:  # Scroll wheel down
-        current_type = (5 + int(current_type) - 1)%5
+        current_type = (6 + int(current_type) - 1)%6
       elif event.button == 1:
         clicked = True
     elif event.type == pygame.MOUSEBUTTONUP:

@@ -6,6 +6,7 @@ BLACK = (0, 0, 0)
 TEAL = (13, 158, 190)
 RED = (102, 6, 6)
 GOLD = (194, 193, 75)
+PURPLE = (86, 15, 148)
 
 class tileType(IntEnum):
   OPEN = 0
@@ -13,6 +14,7 @@ class tileType(IntEnum):
   DOOR = 2
   HAZARD = 3
   COIN = 4
+  START = 5
 
 def getTileColor(tile):
   if(tile == tileType.WALL):
@@ -23,5 +25,7 @@ def getTileColor(tile):
     return RED
   elif(tile == tileType.COIN):
     return GOLD
+  elif(tile == tileType.START):
+    return PURPLE
   else:
     return BROWN
