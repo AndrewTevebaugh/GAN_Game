@@ -35,6 +35,7 @@ class Game:
 
   def update(self):
     (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
+    mv.check_pickUp(self.tileList, self.playerX, self.playerY)
 
   def render(self):
     # Draws all of the map tiles

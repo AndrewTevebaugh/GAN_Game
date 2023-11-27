@@ -43,4 +43,9 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
 
   return (newX, newY)
 
-# def check_pickUp(tileList, posX, posY):
+def check_pickUp(tileList, posX, posY):
+  playerRect = pygame.Rect(posX, posY, 25, 25)
+  for (row_idx, col_idx), tile in np.ndenumerate(tileList):
+    tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
+    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN):
+      tileList[row_idx][col_idx] = lh.tileType.OPEN
