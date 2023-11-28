@@ -33,7 +33,7 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
     newX = (SCREEN_WIDTH - PLAYER_WIDTH)
 
   # Check for collisions with other tiles
-  # TODO: currently super basic; planning on checking the direction player came from so you dont get stuck on the wall.
+  # Potentially might need to make this faster (get rid of nested for loop)
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     playerRect = pygame.Rect(newX, newY, 25, 25)
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
@@ -57,9 +57,18 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
 
   return (newX, newY)
 
-def check_pickUp(tileList, posX, posY):
+def check_pickUp(tileList, posX, posY, score, coinMultiplier, hazardMultiplier, hazardCooldown):
   playerRect = pygame.Rect(posX, posY, 25, 25)
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN):
       tileList[row_idx][col_idx] = lh.tileType.OPEN
+      score += 5000 * coinMultiplier
+      coinMultiplier = coinMultiplier * 0.95
+    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.HAZARD and hazardCooldown < 0):
+      # tileList[row_idx][col_idx] = lh.tileType.OPEN
+      score -= 1000 * hazardMultiplier
+      hazardMultiplier = hazardMultiplier * 1.25
+      hazardCooldown = 60
+  hazardCooldown -= 1
+  return score, coinMultiplier, hazardMultiplier, hazardCooldown

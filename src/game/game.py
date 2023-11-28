@@ -19,6 +19,12 @@ class Game:
         self.playerX = col_idx*25
         self.playerY = row_idx*25
     
+    # Score keeping values
+    self.score = 0
+    self.hazardMultiplier = 0.5
+    self.coinMultiplier = 1
+    self.hazardCooldown = 0
+
     # Marks game as running
     self.is_running = True
 
@@ -35,7 +41,7 @@ class Game:
 
   def update(self):
     (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
-    mv.check_pickUp(self.tileList, self.playerX, self.playerY)
+    self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown)
 
   def render(self):
     # Draws all of the map tiles
@@ -46,4 +52,5 @@ class Game:
     pygame.draw.rect(self.screen, "pink", (self.playerX, self.playerY, PLAYER_WIDTH, PLAYER_HEIGHT))
 
     #actually renders the updates to the screen
+    pygame.display.set_caption("GAN Game - Score: " + str(int(self.score)))
     pygame.display.update()
