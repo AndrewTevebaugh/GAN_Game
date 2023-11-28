@@ -58,9 +58,13 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
   return (newX, newY)
 
 def check_pickUp(tileList, posX, posY, score, coinMultiplier, hazardMultiplier, hazardCooldown):
+  is_running = 1
+  on_start = 0
   playerRect = pygame.Rect(posX, posY, 25, 25)
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
+    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.START):
+      on_start = 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN):
       tileList[row_idx][col_idx] = lh.tileType.OPEN
       score += 5000 * coinMultiplier
@@ -70,5 +74,6 @@ def check_pickUp(tileList, posX, posY, score, coinMultiplier, hazardMultiplier, 
       score -= 1000 * hazardMultiplier
       hazardMultiplier = hazardMultiplier * 1.25
       hazardCooldown = 60
-  hazardCooldown -= 1
-  return score, coinMultiplier, hazardMultiplier, hazardCooldown
+    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.DOOR):
+      is_running = 0
+  return is_running, on_start, score, coinMultiplier, hazardMultiplier, hazardCooldown

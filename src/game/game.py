@@ -23,7 +23,9 @@ class Game:
     self.score = 0
     self.hazardMultiplier = 0.5
     self.coinMultiplier = 1
+    self.timeMultiplier = 0.001
     self.hazardCooldown = 0
+    self.on_start = 1
 
     # Marks game as running
     self.is_running = True
@@ -45,7 +47,12 @@ class Game:
         self.is_running = False
 
     (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
-    self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown)
+    self.is_running, self.on_start, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown)
+    # Don't modify multipliers when on starting block
+    if(self.on_start == 0):
+      self.score -= self.timeMultiplier * 1
+      self.timeMultiplier = self.timeMultiplier * 1.003
+      self.hazardCooldown -= 1
 
   def render(self):
     # Draws all of the map tiles
