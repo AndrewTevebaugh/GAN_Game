@@ -42,10 +42,6 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
-    for event in pygame.event.get():
-      if event.type == pygame.QUIT:
-        self.is_running = False
-
     (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
     self.is_running, self.on_start, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown)
     # Don't modify multipliers when on starting block
@@ -53,6 +49,10 @@ class Game:
       self.score -= self.timeMultiplier * 1
       self.timeMultiplier = self.timeMultiplier * 1.003
       self.hazardCooldown -= 1
+
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        self.is_running = False
 
   def render(self):
     # Draws all of the map tiles
