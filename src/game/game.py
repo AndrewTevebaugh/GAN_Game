@@ -40,6 +40,10 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        self.is_running = False
+
     (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
     self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown)
 
