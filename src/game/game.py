@@ -18,14 +18,17 @@ class Game:
       if(tile == lh.tileType.START):
         self.playerX = col_idx*25
         self.playerY = row_idx*25
+      
+      elif(tile == lh.tileType.DOOR):
+        self.doorPos = (row_idx*25, col_idx*25)
     
     # Score keeping values
     self.score = 0
     self.hazardMultiplier = 0.5
     self.coinMultiplier = 1
-    self.timeMultiplier = 0.001
     self.hazardCooldown = 0
-    self.on_start = 1
+    self.distFromExit = np.sqrt((self.doorPos[0]-self.playerX)**2 + (self.doorPos[1]-self.playerY)**2)
+    self.deltaS = 0
 
     # Marks game as running
     self.is_running = True
@@ -42,13 +45,12 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
-    (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
+    (self.playerX, self.playerY, self.deltaS) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
     self.is_running, self.on_start, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown)
-    # Don't modify multipliers when on starting block
-    if(self.on_start == 0):
-      self.score -= self.timeMultiplier * 1
-      self.timeMultiplier = self.timeMultiplier * 1.003
-      self.hazardCooldown -= 1
+
+    # lower score if further from exit, higher score if not staying in the same spot
+    self.score -= np.sqrt((self.doorPos[0]-self.playerX)**2 + (self.doorPos[1]-self.playerY)**2)/1800
+    self.hazardCooldown -= 1
 
     for event in pygame.event.get():
       if event.type == pygame.QUIT:

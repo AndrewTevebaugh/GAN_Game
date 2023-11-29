@@ -54,8 +54,9 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
       else:
         newX = oldX
         newY = oldY
+  ds = abs(newX - oldX)/100 + abs(newY - oldY)/100
 
-  return (newX, newY)
+  return (newX, newY, ds)
 
 def check_pickUp(tileList, posX, posY, score, coinMultiplier, hazardMultiplier, hazardCooldown):
   is_running = 1
@@ -67,7 +68,7 @@ def check_pickUp(tileList, posX, posY, score, coinMultiplier, hazardMultiplier, 
       on_start = 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN):
       tileList[row_idx][col_idx] = lh.tileType.OPEN
-      score += 5000 * coinMultiplier
+      score += 50 * coinMultiplier
       coinMultiplier = coinMultiplier * 0.95
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.HAZARD and hazardCooldown < 0):
       # tileList[row_idx][col_idx] = lh.tileType.OPEN
