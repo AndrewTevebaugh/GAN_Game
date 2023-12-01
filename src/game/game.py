@@ -17,11 +17,14 @@ class Game:
     for i in range(16):
       self.agents.append(ag.Agent())
 
+    self.perf_time = TRIAL_TIME
+
     #TODO Add a configurable level loader
     # Loads map from save file
     self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
     for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
       if(tile == lh.tileType.START):
+        self.start_pos = (col_idx*25, row_idx*25)
         for a in self.agents:
           a.set_pos((col_idx*25, row_idx*25))
       
@@ -44,27 +47,56 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
-    inputs = np.zeros(5*5+4)
+    radius = PLAYER_VISION_RADIUS
+    inputs = np.zeros((radius*2+1)**2+5)
+    
     for a in self.agents:
       a_col_idx = int(self.tileList.shape[1]*25 / (a.get_pos()[0]))
       a_row_idx = int(self.tileList.shape[0]*25 / (a.get_pos()[1]))
-      for i in range(-2, 3):
-        for j in range(-2, 3):
+      for i in range(-radius, radius+1):
+        for j in range(-radius, radius+1):
           if a_col_idx + j >= 0 and a_col_idx + j < SCREEN_WIDTH/PLAYER_WIDTH and a_row_idx + i >= 0 and a_row_idx + i < SCREEN_HEIGHT/PLAYER_HEIGHT:
-            inputs[5*(i+2) + (j+2)] = self.tileList[a_row_idx + i][a_col_idx + j]
+            inputs[(2*radius+1)*(i+radius) + (j+radius)] = self.tileList[a_row_idx + i][a_col_idx + j]
           else:
-            inputs[5*(i+2) + (j+2)] = lh.tileType.WALL
-      inputs[len(inputs)-4:] = [self.doorPos[0], self.doorPos[1], a.get_pos()[0], a.get_pos()[1]]
+            inputs[(2*radius+1)*(i+radius) + (j+radius)] = lh.tileType.WALL
+      inputs[len(inputs)-5:] = [self.doorPos[0], self.doorPos[1], a.get_pos()[0], a.get_pos()[1], a.time_stopped]
+      if self.perf_time == 0:
+        a.set_pos(self.start_pos)
 
-      a.set_pos(mv.update_position(a.get_pos()[0], a.get_pos()[1], a.get_output(inputs), self.tileList))
+      new_pos = mv.update_position(a.get_pos()[0], a.get_pos()[1], a.get_output(inputs), self.tileList)
+      ds = abs(new_pos[0] - a.get_pos()[0]) + abs(new_pos[1] - a.get_pos()[1])
+      if ds == 0:
+        a.time_stopped += 1
+      elif a.time_stopped > 0:
+        a.time_stopped -= 1
+      a.set_pos(new_pos)
       pickUp_return = mv.check_pickUp(self.tileList, a.get_pos()[0], a.get_pos()[1], a.get_hazardCooldown())
       a.increment_score(pickUp_return[0])
       
       # Decrease score further away from door
-      a.increment_score(-np.sqrt((self.doorPos[0]-a.get_pos()[0])**2 + (self.doorPos[1]-a.get_pos()[1])**2)/1800)
+      a.increment_score(-np.sqrt((self.doorPos[0]-a.get_pos()[0])**2 + (self.doorPos[1]-a.get_pos()[1])**2)/1000 - 3*a.time_stopped)
       a.set_hazardCooldown(pickUp_return[1]-1)
 
-    print(self.agents[0].outputs)
+    if self.perf_time == 0:
+      half = len(self.agents)//2
+      self.agents.sort(key = lambda x: x.score)
+      for i in range(half//2):
+        ag.reproduce(self.agents[half+2*i], self.agents[half+2*i+1], self.agents[2*i], self.agents[2*i+1])
+        self.agents[2*i].mutate()
+        self.agents[2*i+1].mutate()
+      self.perf_time = TRIAL_TIME
+      print("Top score: ", self.agents[len(self.agents)-1].score)
+      print("Bottom score: ", self.agents[0].score)
+      self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
+      for a in self.agents:
+        a.set_score(0)
+        a.time_stopped = 0
+
+    else:
+      self.perf_time -= 1
+
+    
+
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         self.is_running = False

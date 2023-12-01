@@ -1,15 +1,17 @@
 import numpy as np
+from src.utils.constants import *
 
 class Agent:
     def __init__(self, w=0):
-        self.numInputs = 25 + 4
+        self.numInputs = (PLAYER_VISION_RADIUS*2+1)**2 + 5
         self.numOutputs = 4
         self.score = 0
         self.outputs = [0, 0, 0, 0]
         self.X = 0
         self.Y = 0
+        self.time_stopped = 0
         self.hazardCooldown = 0
-        self.dims = np.array([self.numInputs, 40, self.numOutputs])
+        self.dims = np.array([self.numInputs, 15, self.numOutputs])
         if w == 0:
             self.weights = []
             for i in range(self.dims.size-1):
@@ -18,7 +20,8 @@ class Agent:
             self.weights = np.copy(w)
 
     def set_weights(self, w):
-        self.weights = np.copy(w)
+        for i in range(len(w)):
+            self.weights[i] = np.copy(w[i])
 
     def get_weights(self):
         return self.weights
@@ -39,6 +42,9 @@ class Agent:
     def increment_score(self, s):
         self.score += s
 
+    def set_score(self, s):
+        self.score = s
+
     def get_output(self, inputs):
         self.outputs = self.feed_forward(inputs)
         for i in range(len(self.outputs)):
@@ -56,15 +62,16 @@ class Agent:
 
     def mutate(self):
         rn = np.random.rand()
-        lay = np.random.randint(len(self.dims))
-        w = np.randint(len(self.dims[lay]))
-        self.weights[lay][w] = rn
+        lay = np.random.randint(len(self.dims)-1)
+        row = np.random.randint(self.dims[lay])
+        rw = np.random.rand(self.weights[lay].shape[1]) * 2
+        self.weights[lay][row] += rw
 
 def reproduce(p1, p2, o1, o2):
 
-    lay = np.random.randint(len(p1.dims))
-    temp1 = np.copy(p1.get_weights())
-    temp2 = np.copy(p2.get_weights())
+    lay = np.random.randint(len(p1.dims)-1)
+    temp1 = p1.get_weights()
+    temp2 = p2.get_weights()
     temp1[lay] = np.copy(p2.get_weights()[lay])
     temp2[lay] = np.copy(p1.get_weights()[lay])
     o1.set_weights(temp1)
