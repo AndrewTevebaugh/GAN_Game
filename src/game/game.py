@@ -1,36 +1,35 @@
 import pygame
 import numpy as np
+import src.agent.model as ag
 import src.game.movement as mv
 import src.utils.levelHelper as lh
 from src.utils.constants import *
 
 class Game:
-  def __init__(self):
+  def __init__(self, type):
     # Set up pygame stuff
     self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("GAN Game")
     self.clock = pygame.time.Clock()
+
+    # Create agent instances
+    self.agents = []
+    for i in range(16):
+      self.agents.append(ag.Agent())
 
     #TODO Add a configurable level loader
     # Loads map from save file
     self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
     for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
       if(tile == lh.tileType.START):
-        self.playerX = col_idx*25
-        self.playerY = row_idx*25
+        for a in self.agents:
+          a.set_pos((col_idx*25, row_idx*25))
       
       elif(tile == lh.tileType.DOOR):
-        self.doorPos = (row_idx*25, col_idx*25)
-    
-    # Score keeping values
-    self.score = 0
-    self.hazardMultiplier = 0.5
-    self.coinMultiplier = 1
-    self.hazardCooldown = 0
-    self.distFromExit = np.sqrt((self.doorPos[0]-self.playerX)**2 + (self.doorPos[1]-self.playerY)**2)
-    self.deltaS = 0
+        self.doorPos = (col_idx*25, row_idx*25)
 
     # Marks game as running
+    self.round_complete = False
     self.is_running = True
 
   def handle_events(self):
@@ -45,13 +44,27 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
-    (self.playerX, self.playerY, self.deltaS) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
-    self.is_running, self.on_start, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.score, self.coinMultiplier, self.hazardMultiplier, self.hazardCooldown)
+    inputs = np.zeros(5*5+4)
+    for a in self.agents:
+      a_col_idx = int(self.tileList.shape[1]*25 / (a.get_pos()[0]))
+      a_row_idx = int(self.tileList.shape[0]*25 / (a.get_pos()[1]))
+      for i in range(-2, 3):
+        for j in range(-2, 3):
+          if a_col_idx + j >= 0 and a_col_idx + j < SCREEN_WIDTH/PLAYER_WIDTH and a_row_idx + i >= 0 and a_row_idx + i < SCREEN_HEIGHT/PLAYER_HEIGHT:
+            inputs[5*(i+2) + (j+2)] = self.tileList[a_row_idx + i][a_col_idx + j]
+          else:
+            inputs[5*(i+2) + (j+2)] = lh.tileType.WALL
+      inputs[len(inputs)-4:] = [self.doorPos[0], self.doorPos[1], a.get_pos()[0], a.get_pos()[1]]
 
-    # lower score if further from exit, higher score if not staying in the same spot
-    self.score -= np.sqrt((self.doorPos[0]-self.playerX)**2 + (self.doorPos[1]-self.playerY)**2)/1800
-    self.hazardCooldown -= 1
+      a.set_pos(mv.update_position(a.get_pos()[0], a.get_pos()[1], a.get_output(inputs), self.tileList))
+      pickUp_return = mv.check_pickUp(self.tileList, a.get_pos()[0], a.get_pos()[1], a.get_hazardCooldown())
+      a.increment_score(pickUp_return[0])
+      
+      # Decrease score further away from door
+      a.increment_score(-np.sqrt((self.doorPos[0]-a.get_pos()[0])**2 + (self.doorPos[1]-a.get_pos()[1])**2)/1800)
+      a.set_hazardCooldown(pickUp_return[1]-1)
 
+    print(self.agents[0].outputs)
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         self.is_running = False
@@ -62,8 +75,9 @@ class Game:
       pygame.draw.rect(self.screen, lh.getTileColor(tile), (col_idx*25, row_idx*25, 25, 25))
 
     # Draws the player
-    pygame.draw.rect(self.screen, "pink", (self.playerX, self.playerY, PLAYER_WIDTH, PLAYER_HEIGHT))
+    for a in self.agents:
+      pygame.draw.rect(self.screen, "pink", (a.get_pos()[0], a.get_pos()[1], PLAYER_WIDTH, PLAYER_HEIGHT))
 
     #actually renders the updates to the screen
-    pygame.display.set_caption("GAN Game - Score: " + str(int(self.score)))
+    #pygame.display.set_caption("GAN Game - Score: " + str(int(self.score)))
     pygame.display.update()

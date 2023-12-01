@@ -1,19 +1,20 @@
 import pygame
 import numpy as np
+import src.agent.model as ag
 import src.utils.levelHelper as lh
 from src.utils.constants import *
 
 def update_position(playerX, playerY, keys, tileList):
-  if(keys[pygame.K_w] and not keys[pygame.K_s]):
+  if(keys[2] and not keys[3]):
     newY = playerY - 25.0 * PLAYER_VELOCITY
-  elif(keys[pygame.K_s] and not keys[pygame.K_w]):
+  elif(keys[3] and not keys[2]):
     newY = playerY + 25.0 * PLAYER_VELOCITY
   else:
     newY = playerY
 
-  if(keys[pygame.K_d] and not keys[pygame.K_a]):
+  if(keys[1] and not keys[0]):
     newX = playerX + 25.0 * PLAYER_VELOCITY
-  elif(keys[pygame.K_a] and not keys[pygame.K_d]):
+  elif(keys[0] and not keys[1]):
     newX = playerX - 25.0 * PLAYER_VELOCITY
   else:
     newX = playerX
@@ -54,13 +55,12 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
       else:
         newX = oldX
         newY = oldY
-  ds = abs(newX - oldX)/100 + abs(newY - oldY)/100
 
-  return (newX, newY, ds)
+  return (newX, newY)
 
-def check_pickUp(tileList, posX, posY, score, coinMultiplier, hazardMultiplier, hazardCooldown):
-  is_running = 1
-  on_start = 0
+def check_pickUp(tileList, posX, posY, hazardCooldown):
+  door_reached = 0
+  score = 0
   playerRect = pygame.Rect(posX, posY, 25, 25)
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
@@ -68,13 +68,10 @@ def check_pickUp(tileList, posX, posY, score, coinMultiplier, hazardMultiplier, 
       on_start = 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN):
       tileList[row_idx][col_idx] = lh.tileType.OPEN
-      score += 50 * coinMultiplier
-      coinMultiplier = coinMultiplier * 0.95
+      score += 50
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.HAZARD and hazardCooldown < 0):
-      # tileList[row_idx][col_idx] = lh.tileType.OPEN
-      score -= 1000 * hazardMultiplier
-      hazardMultiplier = hazardMultiplier * 1.25
+      score -= 50
       hazardCooldown = 60
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.DOOR):
-      is_running = 0
-  return is_running, on_start, score, coinMultiplier, hazardMultiplier, hazardCooldown
+      door_reached = 1
+  return (score, hazardCooldown, door_reached)
