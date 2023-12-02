@@ -9,8 +9,6 @@ class Agent:
         self.outputs = [0, 0, 0, 0]
         self.X = 0
         self.Y = 0
-        self.disp_x_history = np.zeros(100)
-        self.disp_y_history = np.zeros(100)
         self.time_stopped = 0
         self.hazardCooldown = 0
         self.dims = np.array([self.numInputs, 15, 15, self.numOutputs])

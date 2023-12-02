@@ -48,7 +48,9 @@ class Game:
     self.clock.tick(60)
 
   def update(self):
+    # Radius of tiles that the agent can see
     radius = PLAYER_VISION_RADIUS
+    # Number of tiles + door position, player position, and time that the agent hasn't moved
     inputs = np.zeros((radius*2+1)**2+5)
     
     for a in self.agents:
@@ -64,6 +66,7 @@ class Game:
       if self.perf_time == 0:
         a.set_pos(self.start_pos)
 
+      # Get new agent position based on model output
       new_pos = mv.update_position(a.get_pos()[0], a.get_pos()[1], a.get_output(inputs), self.tileList)
       if new_pos[0] - a.get_pos()[0] + new_pos[1] - a.get_pos()[1] == 0:
         a.time_stopped += 1
@@ -71,12 +74,17 @@ class Game:
         a.time_stopped -= 1
       a.set_pos(new_pos)
       pickUp_return = mv.check_pickUp(self.tileList, a.get_pos()[0], a.get_pos()[1], a.get_hazardCooldown())
+
+      # Increment score based on pickup
+      #TODO: pickup currently gets rid of coin for all agents,
+      #      need to make the coins individual
       a.increment_score(pickUp_return[0])
       
-      # Decrease score further away from door
+      # Decrease score further away from door and based on how long agent stands still
       a.increment_score(-np.sqrt((self.doorPos[0]-a.get_pos()[0])**2 + (self.doorPos[1]-a.get_pos()[1])**2)/1000 - 10*a.time_stopped)
       a.set_hazardCooldown(pickUp_return[1]-1)
 
+    # If agent performance time is up, reset agents and level
     if self.perf_time == 0:
       half = len(self.agents)//2
       self.agents.sort(key = lambda x: x.score)
@@ -84,7 +92,7 @@ class Game:
         ag.reproduce(self.agents[half+2*i], self.agents[half+2*i+1], self.agents[2*i], self.agents[2*i+1])
         self.agents[2*i].mutate()
         self.agents[2*i+1].mutate()
-      self.perf_time = TRIAL_TIME + 60*(self.gen_num//20)
+      self.perf_time = TRIAL_TIME + 60*(self.gen_num//40)
       self.gen_num += 1
       pygame.display.set_caption("Gen number: " + str(self.gen_num))
       self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
@@ -92,6 +100,7 @@ class Game:
         a.set_score(0)
         a.time_stopped = 0
 
+    # Otherwise, decrement time
     else:
       self.perf_time -= 1
 
