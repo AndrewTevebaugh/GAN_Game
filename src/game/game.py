@@ -14,10 +14,11 @@ class Game:
 
     # Create agent instances
     self.agents = []
-    for i in range(16):
+    for i in range(32):
       self.agents.append(ag.Agent())
 
     self.perf_time = TRIAL_TIME
+    self.gen_num = 1
 
     #TODO Add a configurable level loader
     # Loads map from save file
@@ -64,8 +65,7 @@ class Game:
         a.set_pos(self.start_pos)
 
       new_pos = mv.update_position(a.get_pos()[0], a.get_pos()[1], a.get_output(inputs), self.tileList)
-      ds = abs(new_pos[0] - a.get_pos()[0]) + abs(new_pos[1] - a.get_pos()[1])
-      if ds == 0:
+      if new_pos[0] - a.get_pos()[0] + new_pos[1] - a.get_pos()[1] == 0:
         a.time_stopped += 1
       elif a.time_stopped > 0:
         a.time_stopped -= 1
@@ -74,7 +74,7 @@ class Game:
       a.increment_score(pickUp_return[0])
       
       # Decrease score further away from door
-      a.increment_score(-np.sqrt((self.doorPos[0]-a.get_pos()[0])**2 + (self.doorPos[1]-a.get_pos()[1])**2)/1000 - 3*a.time_stopped)
+      a.increment_score(-np.sqrt((self.doorPos[0]-a.get_pos()[0])**2 + (self.doorPos[1]-a.get_pos()[1])**2)/1000 - 10*a.time_stopped)
       a.set_hazardCooldown(pickUp_return[1]-1)
 
     if self.perf_time == 0:
@@ -84,9 +84,9 @@ class Game:
         ag.reproduce(self.agents[half+2*i], self.agents[half+2*i+1], self.agents[2*i], self.agents[2*i+1])
         self.agents[2*i].mutate()
         self.agents[2*i+1].mutate()
-      self.perf_time = TRIAL_TIME
-      print("Top score: ", self.agents[len(self.agents)-1].score)
-      print("Bottom score: ", self.agents[0].score)
+      self.perf_time = TRIAL_TIME + 60*(self.gen_num//20)
+      self.gen_num += 1
+      pygame.display.set_caption("Gen number: " + str(self.gen_num))
       self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
       for a in self.agents:
         a.set_score(0)
@@ -94,8 +94,6 @@ class Game:
 
     else:
       self.perf_time -= 1
-
-    
 
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
