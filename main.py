@@ -29,4 +29,4 @@ if __name__ == "__main__":
 
   # Clean up Pygame
   pygame.quit()
-  print("Final score: " + str(int(game.score)))
+  # print("Final score: " + str(int(game.score)))
