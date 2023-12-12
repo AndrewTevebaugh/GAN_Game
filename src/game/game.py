@@ -9,32 +9,39 @@ class Game:
   def __init__(self, type):
     # Set up pygame stuff
     self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("GAN Game")
     self.clock = pygame.time.Clock()
 
-    # Create agent instances
-    self.agents = []
-    for i in range(32):
-      self.agents.append(ag.Agent())
-
-    self.perf_time = TRIAL_TIME
-    self.gen_num = 1
-
-    #TODO Add a configurable level loader
     # Loads map from save file
-    self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
-    for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
-      if(tile == lh.tileType.START):
-        self.start_pos = (col_idx*25, row_idx*25)
-        for a in self.agents:
-          a.set_pos((col_idx*25, row_idx*25))
-      
-      elif(tile == lh.tileType.DOOR):
-        self.doorPos = (col_idx*25, row_idx*25)
+    self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int) # TODO Add a configurable level loader
 
-    # Marks game as running
-    self.round_complete = False
-    self.is_running = True
+    if(int(type) == 0):
+      pygame.display.set_caption("GAN Game")
+      # Marks game as NOT running - User mode not implemented
+      self.round_complete = False
+      self.is_running = False
+      print("Manual Mode disabled")
+    else:
+      # Create agent instances
+      self.agents = []
+      for i in range(AGENT_CNT):
+        self.agents.append(ag.Agent())
+
+      self.perf_time = TRIAL_TIME
+      self.gen_num = 1
+      pygame.display.set_caption("Gen number: " + str(self.gen_num))
+
+      for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
+        if(tile == lh.tileType.START):
+          self.start_pos = (col_idx*25, row_idx*25)
+          for a in self.agents:
+            a.set_pos((col_idx*25, row_idx*25))
+        
+        elif(tile == lh.tileType.DOOR):
+          self.doorPos = (col_idx*25, row_idx*25)
+
+      # Marks game as running
+      self.round_complete = False
+      self.is_running = True
 
   def handle_events(self):
     # Checks for new events
