@@ -113,9 +113,18 @@ class Game:
     for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
       pygame.draw.rect(self.screen, lh.getTileColor(tile), (col_idx*25, row_idx*25, 25, 25))
 
+    font = pygame.font.Font(None, 18) # Set font for text
     # Draws the player
     for a in self.agents:
       pygame.draw.rect(self.screen, "pink", (a.get_pos()[0], a.get_pos()[1], PLAYER_WIDTH, PLAYER_HEIGHT))
+      
+      # Set up the text to draw score on top of player
+      text = str(int(a.score))
+      text_color = (255, 255, 255)
+      text_surface = font.render(text, True, text_color)
+
+      # Blit the text onto the screen
+      self.screen.blit(text_surface, (a.get_pos()[0], a.get_pos()[1]+6))
 
     #actually renders the updates to the screen
     #pygame.display.set_caption("GAN Game - Score: " + str(int(self.score)))
