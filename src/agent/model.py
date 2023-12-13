@@ -6,12 +6,14 @@ class Agent:
         self.numInputs = (PLAYER_VISION_RADIUS*2+1)**2 + 5
         self.numOutputs = 4
         self.score = 0
+        self.coins = 0
         self.outputs = [0, 0, 0, 0]
         self.X = 0
         self.Y = 0
+        self.map = np.zeros((SCREEN_SIZE, SCREEN_SIZE))
         self.time_stopped = 0
         self.hazardCooldown = 0
-        self.dims = np.array([self.numInputs, 15, 15, self.numOutputs])
+        self.dims = np.array([self.numInputs, 500, 250, 50, 15, 15, 8, self.numOutputs])
         if w == 0:
             self.weights = []
             for i in range(self.dims.size-1):
@@ -56,6 +58,9 @@ class Agent:
     def set_score(self, s):
         self.score = s
 
+    def get_score(self):
+        return self.score
+
     def get_output(self, inputs):
         self.outputs = self.feed_forward(inputs)
         for i in range(len(self.outputs)):
@@ -75,7 +80,7 @@ class Agent:
         rn = np.random.rand()
         lay = np.random.randint(len(self.dims)-1)
         row = np.random.randint(self.dims[lay])
-        rw = np.random.rand(self.weights[lay].shape[1]) * 6-3
+        rw = np.random.rand(self.weights[lay].shape[1]) * 5 # 6-3
         self.weights[lay][row] += rw
 
 def reproduce(p1, p2, o1, o2):

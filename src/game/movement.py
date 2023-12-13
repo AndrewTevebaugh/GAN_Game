@@ -58,20 +58,19 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
 
   return (newX, newY)
 
-def check_pickUp(tileList, posX, posY, hazardCooldown):
+def check_pickUp(tileList, posX, posY, hazardCooldown, agent_map):
   door_reached = 0
   score = 0
   playerRect = pygame.Rect(posX, posY, 25, 25)
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
-    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.START):
-      on_start = 1
-    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN):
-      tileList[row_idx][col_idx] = lh.tileType.OPEN
-      score += 50
+    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN and agent_map[row_idx][col_idx] == 4):
+      # tileList[row_idx][col_idx] = lh.tileType.OPEN
+      agent_map[row_idx][col_idx] = 0
+      score += 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.HAZARD and hazardCooldown < 0):
-      score -= 50
+      score -= 1
       hazardCooldown = 60
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.DOOR):
       door_reached = 1
-  return (score, hazardCooldown, door_reached)
+  return (score, hazardCooldown, door_reached, agent_map)
