@@ -19,7 +19,7 @@ class Agent:
     if w == 0:
       self.weights = []
       for i in range(self.dims.size-1):
-        self.weights.append(np.random.rand(self.dims[i], self.dims[i+1])*1 - .5) #*10 -5
+        self.weights.append(np.random.rand(self.dims[i], self.dims[i+1])*10 - 5) #*10 -5
     else:
       self.weights = np.copy(w)
 
@@ -89,8 +89,10 @@ class Agent:
     # rn = np.random.rand()
     lay = np.random.randint(len(self.dims)-1)
     row = np.random.randint(self.dims[lay])
-    rw = np.random.rand(self.weights[lay].shape[1]) * .25 # 6-3
-    self.weights[lay][row] += rw
+    col = np.random.randint(self.weights[lay].shape[1])
+    rw = np.random.rand() * 3 # 6-3
+    # rw = np.random.rand(self.weights[lay].shape[1]) * 3 # 6-3
+    self.weights[lay][row][col] += rw
 
 def reproduce(p1, p2, o1, o2):
   lay = np.random.randint(len(p1.dims)-1)

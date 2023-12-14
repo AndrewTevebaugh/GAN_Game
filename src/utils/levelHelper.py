@@ -9,12 +9,13 @@ GOLD = (194, 193, 75)
 PURPLE = (86, 15, 148)
 
 class tileType(IntEnum):
-  OPEN = 0
-  WALL = 1
-  DOOR = 2
-  HAZARD = 3
-  COIN = 4
-  START = 5
+  OPEN = 10
+  TRAVERSED = -10
+  WALL = -10000
+  DOOR = 1000
+  HAZARD = -1000
+  COIN = 100
+  START = -100
 
 def getTileColor(tile):
   if(tile == tileType.WALL):

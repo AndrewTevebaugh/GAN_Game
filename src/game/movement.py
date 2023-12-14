@@ -64,9 +64,9 @@ def check_pickUp(tileList, posX, posY, hazardCooldown, agent_map):
   playerRect = pygame.Rect(posX, posY, 25, 25)
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
-    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN and agent_map[row_idx][col_idx] == 4):
+    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN and agent_map[row_idx][col_idx] == lh.tileType.COIN):
       # tileList[row_idx][col_idx] = lh.tileType.OPEN
-      agent_map[row_idx][col_idx] = 0
+      agent_map[row_idx][col_idx] = lh.tileType.TRAVERSED
       score += 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.HAZARD and hazardCooldown < 0):
       score -= 1
