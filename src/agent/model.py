@@ -7,6 +7,7 @@ class Agent:
     self.numOutputs = 4
     self.finished = 0
     self.score = 0
+    self.last_score = 0
     self.coins = 0
     self.outputs = [0, 0, 0, 0]
     self.X = 0
@@ -14,11 +15,11 @@ class Agent:
     self.map = np.zeros((SCREEN_SIZE, SCREEN_SIZE))
     self.time_stopped = 0
     self.hazardCooldown = 0
-    self.dims = np.array([self.numInputs, 50, 25, 25, 15, 15, self.numOutputs])
+    self.dims = np.array([self.numInputs, 25, 15, self.numOutputs])
     if w == 0:
       self.weights = []
       for i in range(self.dims.size-1):
-        self.weights.append(np.random.rand(self.dims[i], self.dims[i+1])*10 - 5)
+        self.weights.append(np.random.rand(self.dims[i], self.dims[i+1])*1 - .5) #*10 -5
     else:
       self.weights = np.copy(w)
 
@@ -61,6 +62,11 @@ class Agent:
 
   def get_score(self):
     return self.score
+  
+  def get_delta_score(self):
+    delta = self.score - self.last_score
+    self.last_score = self.score
+    return delta
 
   def get_output(self, inputs):
     self.outputs = self.feed_forward(inputs)
@@ -74,16 +80,16 @@ class Agent:
   def feed_forward(self, inputs):
     layer = np.array(inputs)
     for w in self.weights:
+      layer = np.fmax(np.zeros(layer.shape), layer)
       layer = np.dot(layer, w)
       # layer = layer @ w # Matrix Mult
-      # layer = np.fmax(np.zeros(layer.shape), layer)
     return layer
 
   def mutate(self):
     # rn = np.random.rand()
     lay = np.random.randint(len(self.dims)-1)
     row = np.random.randint(self.dims[lay])
-    rw = np.random.rand(self.weights[lay].shape[1]) * 5 # 6-3
+    rw = np.random.rand(self.weights[lay].shape[1]) * .25 # 6-3
     self.weights[lay][row] += rw
 
 def reproduce(p1, p2, o1, o2):
