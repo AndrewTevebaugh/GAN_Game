@@ -117,8 +117,8 @@ class Game:
         
         agent.set_score(10*agent.coins + 1000*agent.finished)
         # agent.increment_score((np.sqrt(((SCREEN_SIZE*25)**2)*2) - np.sqrt((self.doorPos[0]-agent_pos[0])**2 + (self.doorPos[1]-agent_pos[1])**2)))
-        if(agent.time_stopped > 15):
-          agent.increment_score(-1*agent.time_stopped)
+        # if(agent.time_stopped > 15):
+        #   agent.increment_score(-1*agent.time_stopped)
 
         agent.set_hazardCooldown(pickUp_return[1]-1)
 
