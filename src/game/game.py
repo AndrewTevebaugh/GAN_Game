@@ -9,7 +9,8 @@ class Game:
   # Initialize the game
   def __init__(self, type):
     # DEBUG - Number correlates to agent being followed
-    self.debug = 24 # Must be between 1 and AGENT_CNT (inclusive), 0 to disable
+    self.debug = AGENT_CNT # Must be between 1 and AGENT_CNT (inclusive), 0 to disable
+    self.file_path = "src\\game\\levels\\testLevel2.txt"
     if(self.debug > int(AGENT_CNT) or self.debug < 0):
       print("Invalid Debug configuration!")
       exit()
@@ -19,7 +20,7 @@ class Game:
     self.clock = pygame.time.Clock()
 
     # Loads map from save file
-    self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int) # TODO Add a configurable level loader
+    self.tileList = np.loadtxt(self.file_path, dtype=int) # TODO Add a configurable level loader
 
     if(int(type) == 0):
       pygame.display.set_caption("GAN Game")
@@ -50,7 +51,7 @@ class Game:
 
       # Initialize agent map and set position to the start
       for agent in self.agentList:
-        agent.map = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
+        agent.map = np.loadtxt(self.file_path, dtype=int)
         agent.set_pos(self.start_pos)
         
       # Marks game as running
@@ -75,7 +76,7 @@ class Game:
     # Radius of tiles that the agent can see
     radius = int(PLAYER_VISION_RADIUS)
     # Number of tiles + door position, player position, and time that the agent hasn't moved
-    inputs = np.zeros((radius*2+1)**2+5)
+    inputs = np.zeros(4+5)
     
     for index, agent in enumerate(self.agentList):
       agent_pos = agent.get_pos()
@@ -85,12 +86,15 @@ class Game:
       for i in range(-radius, radius+1):
         for j in range(-radius, radius+1):
           if(a_col_idx + j >= 0 and a_col_idx + j < SCREEN_WIDTH/PLAYER_WIDTH and a_row_idx + i >= 0 and a_row_idx + i < SCREEN_HEIGHT/PLAYER_HEIGHT):
-            inputs[(2*radius+1)*(i+radius) + (j+radius)] = agent.map[a_row_idx + i][a_col_idx + j]
+            #inputs[(2*radius+1)*(i+radius) + (j+radius)] = agent.map[a_row_idx + i][a_col_idx + j]
             if(index == self.debug-1 and self.debug != 0):
               pygame.draw.rect(self.screen, lh.getTileColor(agent.map[a_row_idx + i][a_col_idx + j]), ((a_col_idx + j)*25, (a_row_idx + i)*25, 25, 25))
-          else:
-            inputs[(2*radius+1)*(i+radius) + (j+radius)] = lh.tileType.WALL
-      inputs[len(inputs)-5:] = [self.doorPos[0], self.doorPos[1], agent_pos[0], agent_pos[1], agent.time_stopped]
+          #else:
+            #inputs[(2*radius+1)*(i+radius) + (j+radius)] = lh.tileType.WALL
+      inputs[:4] = agent.get_walls()
+      inputs[len(inputs)-5:] = [self.doorPos[0]//25, self.doorPos[1]//25, agent_pos[0]//25, agent_pos[1]//25, agent.time_stopped//25]
+      if index == self.debug-1:
+        print(inputs)
       
       if self.perf_time == 0:
         agent.set_pos(self.start_pos)
@@ -133,12 +137,12 @@ class Game:
         self.agentList[2*i+1].mutate()
       self.perf_time = TRIAL_TIME + 60*(self.gen_num//5) # Was //40
       self.gen_num += 1
-      self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
+      self.tileList = np.loadtxt(self.file_path, dtype=int)
       for agent in self.agentList:
         agent.set_score(0)
         agent.time_stopped = 0
         agent.coins = 0
-        agent.map = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
+        agent.map = np.loadtxt(self.file_path, dtype=int)
 
     # Otherwise, decrement time
     else:

@@ -3,7 +3,7 @@ from src.utils.constants import *
 
 class Agent:
   def __init__(self, w=0):
-    self.numInputs = (PLAYER_VISION_RADIUS*2+1)**2 + 5
+    self.numInputs = 4 + 5
     self.numOutputs = 4
     self.finished = 0
     self.score = 0
@@ -14,11 +14,11 @@ class Agent:
     self.map = np.zeros((SCREEN_SIZE, SCREEN_SIZE))
     self.time_stopped = 0
     self.hazardCooldown = 0
-    self.dims = np.array([self.numInputs, 50, 25, 25, 15, 15, self.numOutputs])
+    self.dims = np.array([self.numInputs, 6, self.numOutputs])
     if w == 0:
       self.weights = []
       for i in range(self.dims.size-1):
-        self.weights.append(np.random.rand(self.dims[i], self.dims[i+1])*10 - 5)
+        self.weights.append(np.random.rand(self.dims[i], self.dims[i+1]) - 0.5)
     else:
       self.weights = np.copy(w)
 
@@ -82,9 +82,45 @@ class Agent:
   def mutate(self):
     # rn = np.random.rand()
     lay = np.random.randint(len(self.dims)-1)
-    row = np.random.randint(self.dims[lay])
-    rw = np.random.rand(self.weights[lay].shape[1]) * 5 # 6-3
-    self.weights[lay][row] += rw
+    row = np.random.randint(self.weights[lay].shape[0])
+    rw = np.random.rand(self.weights[lay][row].size) * 2 - 1 # 6-3
+    self.weights[lay][row,:] += rw
+
+  def get_walls(self):
+    col_idx = int(self.get_pos()[0]//25)
+    row_idx = int(self.get_pos()[1]//25)
+    wall_vals = np.zeros(4)
+    if col_idx + 1 >= SCREEN_SIZE or self.map[row_idx][col_idx + 1] == 1:
+      wall_vals[0] = 4
+    elif col_idx + 2 >= SCREEN_SIZE or self.map[row_idx][col_idx + 2] == 1:
+      wall_vals[0] = 2
+    else:
+      wall_vals[0] = 0
+
+    if col_idx - 1 < 0 or self.map[row_idx][col_idx - 1] == 1:
+      wall_vals[1] = 4
+    elif col_idx - 2 < 0 or self.map[row_idx][col_idx - 2] == 1:
+      wall_vals[1] = 2
+    else:
+      wall_vals[1] = 0
+
+    if row_idx + 1 >= SCREEN_SIZE or self.map[row_idx + 1][col_idx] == 1:
+      wall_vals[2] = 4
+    elif row_idx + 2 >= SCREEN_SIZE or self.map[row_idx + 2][col_idx] == 1:
+      wall_vals[2] = 2
+    else:
+      wall_vals[2] = 0
+
+    if row_idx - 1 < 0 or self.map[row_idx - 1][col_idx] == 1:
+      wall_vals[3] = 4
+    elif row_idx - 2 < 0 or self.map[row_idx - 2][col_idx] == 1:
+      wall_vals[3] = 2
+    else:
+      wall_vals[3] = 0
+
+    return wall_vals
+
+    
 
 def reproduce(p1, p2, o1, o2):
   lay = np.random.randint(len(p1.dims)-1)
