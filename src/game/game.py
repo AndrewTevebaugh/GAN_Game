@@ -19,7 +19,7 @@ class Game:
     self.clock = pygame.time.Clock()
 
     # Loads map from save file
-    self.tileList = np.loadtxt("src\\game\\levels\\testLevel2.txt", dtype=int) # TODO Add a configurable level loader
+    self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int) # TODO Add a configurable level loader
 
     if(int(type) == 0):
       pygame.display.set_caption("GAN Game")
@@ -63,7 +63,7 @@ class Game:
 
       # Initialize agent map and set position to the start
       for agent in self.agentList:
-        agent.map = np.loadtxt("src\\game\\levels\\testLevel2.txt", dtype=int)
+        agent.map = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
         agent.set_pos(self.start_pos)
         
       # Marks game as running
@@ -108,18 +108,19 @@ class Game:
                 pygame.draw.rect(self.screen, lh.getTileColor(agent.map[a_row_idx + i][a_col_idx + j]), ((a_col_idx + j)*25, (a_row_idx + i)*25, 25, 25))
             else:
               inputs[(2*radius+1)*(i+radius) + (j+radius)] = lh.tileType.WALL
-        inputs[len(inputs)-5:] = [int(self.doorPos[0]//25), int(self.doorPos[1]//25), int(agent_pos[0]//25), int(agent_pos[1]//25), agent.time_stopped]
+        inputs[len(inputs)-5:] = [int(self.doorPos[0]//25), int(self.doorPos[1]//25), int(agent_pos[0]//25), int(agent_pos[1]//25), agent.get_delta_score()]
         
         if self.perf_time == 0:
           agent.set_pos(self.start_pos)
         else:
           # Get new agent position based on model output
-          new_pos = mv.update_position(agent_pos[0], agent_pos[1], agent.get_output(inputs), agent.map)
-          if new_pos[0] - agent_pos[0] + new_pos[1] - agent_pos[1] == 0:
-            agent.time_stopped += 1
-          else:
-            agent.time_stopped = 0
-          agent.set_pos(new_pos)
+          if(agent.finished == 0):
+            new_pos = mv.update_position(agent_pos[0], agent_pos[1], agent.get_output(inputs), agent.map)
+            if new_pos[0] - agent_pos[0] + new_pos[1] - agent_pos[1] == 0:
+              agent.time_stopped += 1
+            else:
+              agent.time_stopped = 0
+            agent.set_pos(new_pos)
 
           # Check item pick ups
           pickUp_return = mv.check_pickUp(self.tileList, agent_pos[0], agent_pos[1], agent.get_hazardCooldown(), agent.map)
@@ -132,11 +133,11 @@ class Game:
           if(agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] == lh.tileType.OPEN): # If agent hasn't been here tile will be OPEN (0)
             agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] = lh.tileType.TRAVERSED # Once agent visits, set to VISITED (-1)
             agent.coins += 100 # Reward for new tile
-          elif(-((-agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)]) % 10) == lh.tileType.TRAVERSED):
-            agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] -= 10 # Once agent visits, set to VISITED (-1)
-            agent.coins -= 1 #+ 1*agent.time_stopped # Penalty for revisit tile
+          elif(-((-agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)]) % 10) == lh.tileType.TRAVERSED and agent.finished != 1):
+            # agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] -= 10 # Once agent visits, set to VISITED (-1)
+            agent.coins -= 10 #+ 1*agent.time_stopped # Penalty for revisit tile
           elif(agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] == lh.tileType.START):
-            agent.coins -= 500 # Penalty for being on start tile
+            agent.coins -= 50 # Penalty for being on start tile
           
           agent.set_score(10*agent.coins + 1000*agent.finished)
           # agent.increment_score((np.sqrt(((SCREEN_SIZE*25)**2)*2) - np.sqrt((self.doorPos[0]-agent_pos[0])**2 + (self.doorPos[1]-agent_pos[1])**2)))
@@ -156,12 +157,12 @@ class Game:
           self.agentList[2*i+1].mutate()
         self.perf_time = TRIAL_TIME + 60*(self.gen_num//5) # Was //40
         self.gen_num += 1
-        self.tileList = np.loadtxt("src\\game\\levels\\testLevel2.txt", dtype=int)
+        self.tileList = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
         for agent in self.agentList:
           agent.set_score(0)
           agent.time_stopped = 0
           agent.coins = 0
-          agent.map = np.loadtxt("src\\game\\levels\\testLevel2.txt", dtype=int)
+          agent.map = np.loadtxt("src\\game\\levels\\testLevel.txt", dtype=int)
 
       # Otherwise, decrement time
       else:
