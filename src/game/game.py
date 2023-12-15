@@ -9,7 +9,7 @@ class Game:
   # Initialize the game
   def __init__(self, type):
     # DEBUG - Number correlates to agent being followed
-    self.debug = 0 # Must be between 1 and AGENT_CNT (inclusive), 0 to disable
+    self.debug = 1 # Must be between 1 and AGENT_CNT (inclusive), 0 to disable
     if(self.debug > int(AGENT_CNT) or self.debug < 0):
       print("Invalid Debug configuration!")
       exit()
@@ -132,10 +132,11 @@ class Game:
           if(agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] == lh.tileType.OPEN): # If agent hasn't been here tile will be OPEN (0)
             agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] = lh.tileType.TRAVERSED # Once agent visits, set to VISITED (-1)
             agent.coins += 100 # Reward for new tile
-          elif(agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] == lh.tileType.TRAVERSED):
-            agent.coins -= 1 + 1*agent.time_stopped # Penalty for revisit tile
+          elif(-((-agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)]) % 10) == lh.tileType.TRAVERSED):
+            agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] -= 10 # Once agent visits, set to VISITED (-1)
+            agent.coins -= 1 #+ 1*agent.time_stopped # Penalty for revisit tile
           elif(agent.map[int(agent_pos[1]//25)][int(agent_pos[0]//25)] == lh.tileType.START):
-            agent.coins -= 5 # Penalty for being on start tile
+            agent.coins -= 500 # Penalty for being on start tile
           
           agent.set_score(10*agent.coins + 1000*agent.finished)
           # agent.increment_score((np.sqrt(((SCREEN_SIZE*25)**2)*2) - np.sqrt((self.doorPos[0]-agent_pos[0])**2 + (self.doorPos[1]-agent_pos[1])**2)))
@@ -177,7 +178,7 @@ class Game:
   # Render tiles to the screen
   def render(self):
     # Draws all of the map tiles
-    if(self.debug == 0):
+    if(self.debug == 0 or self.mode == 0):
       for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
         pygame.draw.rect(self.screen, lh.getTileColor(tile), (col_idx*25, row_idx*25, 25, 25))
 

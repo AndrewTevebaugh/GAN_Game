@@ -10,7 +10,7 @@ PURPLE = (86, 15, 148)
 
 class tileType(IntEnum):
   OPEN = 10
-  TRAVERSED = -10
+  TRAVERSED = -9
   WALL = -10000
   DOOR = 1000
   HAZARD = -1000
