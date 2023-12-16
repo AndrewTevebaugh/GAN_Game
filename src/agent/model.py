@@ -75,16 +75,17 @@ class Agent:
     self.steps_done += 1
     if sample > eps_threshold:
       with torch.no_grad():
+        return self.policy_net(state).max(1).indices.view(1,1)
         # Get action with highest likely reward
-        max_out = self.policy_net(state)[0].item()
-        max_idx = 0
-        for i, x in enumerate(self.policy_net(state)):
-          if x.item() > max_out:
-            max_out = x.item()
-            max_idx = i
-        return torch.tensor([max_idx], device=self.device, dtype=torch.long)
+        #max_out = self.policy_net(state)[0].item()
+        #max_idx = 0
+        #for i, x in enumerate(self.policy_net(state)):
+          #if x.item() > max_out:
+            #max_out = x.item()
+            #max_idx = i
+        #return torch.tensor([max_idx], device=self.device, dtype=torch.long)
     else:
-      return torch.tensor([random.choice(action_space)], device=self.device, dtype=torch.long)
+      return torch.tensor([[random.choice(action_space)]], device=self.device, dtype=torch.long)
 
   def optimize_model(self):
     if len(self.memory) < BATCH_SIZE:
@@ -98,11 +99,11 @@ class Agent:
     # Compute a mask of non-final states and concatenate the batch elements
     # (a final state would've been the one after which simulation ended)
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=self.device, dtype=torch.bool)
-    non_final_next_states = torch.stack([s for s in batch.next_state if s is not None])
+    non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
 
-    state_batch = torch.stack(batch.state)
-    action_batch = torch.stack(batch.action)
-    reward_batch = torch.stack(batch.reward)
+    state_batch = torch.cat(batch.state)
+    action_batch = torch.cat(batch.action)
+    reward_batch = torch.cat(batch.reward)
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken. These are the actions which would've been taken
@@ -122,7 +123,7 @@ class Agent:
 
     # Compute Huber loss
     criterion = nn.SmoothL1Loss()
-    loss = criterion(state_action_values, expected_state_action_values)
+    loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
     # Optimize the model
     self.optimizer.zero_grad()

@@ -87,7 +87,7 @@ class Game:
       self.keys[1] = temp_keys[pygame.K_d]
 
     # Sets the FPS
-    self.clock.tick(60)
+    self.clock.tick(FPS)
 
   # Update game state
   def update(self):
@@ -110,14 +110,14 @@ class Game:
             else:
               inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = lh.tileType.WALL
         # inputs[len(inputs)-5:] = [int(self.door_pos[0]//25), int(self.door_pos[1]//25), int(agent_pos[0]//25), int(agent_pos[1]//25), agent.get_delta_score()]
-        old_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device)
+        old_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device).unsqueeze(0)
 
         if self.perf_time == 0:
           agent.set_pos(self.start_pos)
         else:
           # Get new agent position based on model output
-          if(agent.finished == 0):
-            action = agent.select_action(torch.tensor(inputs, dtype=torch.float32, device=self.torch_device))
+          if(agent.finished == 0 or True):
+            action = agent.select_action(old_inputs)
             action_itm = action.item()
             new_pos = mv.update_position(agent_pos[0], agent_pos[1], action_itm, agent.map)
             agent.set_pos(new_pos)
@@ -131,7 +131,7 @@ class Game:
                   inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = new_map[a_row_idx + i][a_col_idx + j]
                 else:
                   inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = lh.tileType.WALL
-            new_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device)
+            new_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device).unsqueeze(0)
 
             # Log the transaction in replay memory
             agent.memory.push(old_inputs, action, new_inputs, reward)
@@ -155,17 +155,17 @@ class Game:
             else:
               agent.time_stopped = 0
           
-          # Give Rewards
-          agent.finished = door_reached # If agent reached door
-          agent.increment_score(reward)
-          agent.set_hazardCooldown(new_hazardCooldown)
+            # Give Rewards
+            agent.finished = door_reached # If agent reached door
+            agent.increment_score(reward)
+            agent.set_hazardCooldown(new_hazardCooldown)
 
       # If agent performance time is up, reset agents and level
       if self.perf_time == 0:
         half = len(self.agentList)//2
         self.agentList.sort(key = lambda x: x.score)
         self.top_score = self.agentList[AGENT_CNT-1].score
-        self.perf_time = TRIAL_TIME + 60*(self.gen_num//5) # Was //40 - determine the rate at which perf time increases
+        self.perf_time = TRIAL_TIME + (self.gen_num//3) # Was //40 - determine the rate at which perf time increases
         self.gen_num += 1
         self.tileList = np.loadtxt(MAP_STRING, dtype=float)
         for agent in self.agentList:

@@ -30,7 +30,7 @@ if __name__ == "__main__":
   if torch.cuda.is_available():
     num_episodes = 600
   else:
-    num_episodes = 50
+    num_episodes = 300
 
   print("Running the game...")
   
