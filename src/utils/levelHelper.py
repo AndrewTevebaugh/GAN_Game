@@ -11,12 +11,12 @@ GOLD = (194, 193, 75) # Coin
 
 class tileType(IntEnum):
   WALL = 0
-  START = 1
-  HAZARD = 2
-  TRAVERSED = 4
-  OPEN = 6
-  COIN = 8
-  DOOR = 9
+  START = -2
+  HAZARD = -5
+  TRAVERSED = -3
+  OPEN = 1
+  COIN = 4
+  DOOR = 10
 
 def getTileColor(tile):
   if(tile == tileType.WALL):

@@ -105,10 +105,18 @@ class Game:
           for j in range(-AGENT_VISION_RADIUS, AGENT_VISION_RADIUS+1):
             if(a_col_idx + j >= 0 and a_col_idx + j < SCREEN_WIDTH/PLAYER_WIDTH and a_row_idx + i >= 0 and a_row_idx + i < SCREEN_HEIGHT/PLAYER_HEIGHT):
               inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = agent.map[a_row_idx + i][a_col_idx + j]
+              
+              # One hot encoding for walla
+              if agent.map[a_row_idx + i][a_col_idx + j] == lh.tileType.WALL:
+                inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS) + int(AGENT_NN_NUM_INPUTS/2)] = 1
+              else:
+                inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS) + int(AGENT_NN_NUM_INPUTS/2)] = 0
+
               if(index == DEBUG_MODE-1 and DEBUG_MODE != 0):
                 pygame.draw.rect(self.screen, lh.getTileColor(agent.map[a_row_idx + i][a_col_idx + j]), ((a_col_idx + j)*25, (a_row_idx + i)*25, 25, 25))
             else:
               inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = lh.tileType.WALL
+              inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS) + int(AGENT_NN_NUM_INPUTS/2)] = 1
         # inputs[len(inputs)-5:] = [int(self.door_pos[0]//25), int(self.door_pos[1]//25), int(agent_pos[0]//25), int(agent_pos[1]//25), agent.get_delta_score()]
         old_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device).unsqueeze(0)
 
@@ -129,8 +137,15 @@ class Game:
               for j in range(-AGENT_VISION_RADIUS, AGENT_VISION_RADIUS+1):
                 if(a_col_idx + j >= 0 and a_col_idx + j < SCREEN_WIDTH/PLAYER_WIDTH and a_row_idx + i >= 0 and a_row_idx + i < SCREEN_HEIGHT/PLAYER_HEIGHT):
                   inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = new_map[a_row_idx + i][a_col_idx + j]
+                  # One hot encoding for walla
+                  if agent.map[a_row_idx + i][a_col_idx + j] == lh.tileType.WALL:
+                    inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS) + int(AGENT_NN_NUM_INPUTS/2)] = 1
+                  else:
+                    inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS) + int(AGENT_NN_NUM_INPUTS/2)] = 0
                 else:
                   inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = lh.tileType.WALL
+                  inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS) + int(AGENT_NN_NUM_INPUTS/2)] = 1
+
             new_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device).unsqueeze(0)
 
             # Log the transaction in replay memory

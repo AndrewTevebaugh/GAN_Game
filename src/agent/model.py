@@ -8,7 +8,7 @@ n_actions = 4
 action_space = [0, 1, 2, 3]
 
 # Get the number of state observations
-n_observations = (AGENT_VISION_RADIUS*2+1)**2
+n_observations = 2*((AGENT_VISION_RADIUS*2+1)**2)
 
 class Agent:
   def __init__(self, agent_id, device):

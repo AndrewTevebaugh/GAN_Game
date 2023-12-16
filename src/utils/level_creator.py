@@ -2,8 +2,9 @@ import pygame
 import numpy as np
 import levelHelper as lh
 
-current_type = lh.tileType.OPEN
-tileList = np.zeros((20,20), dtype=int)
+current_type = 0
+tile_types = [lh.tileType.OPEN, lh.tileType.WALL, lh.tileType.START, lh.tileType.HAZARD, lh.tileType.COIN, lh.tileType.DOOR]
+tileList = np.ones((20,20), dtype=int)*lh.tileType.OPEN
 pygame.init()
 pygame.display.set_caption("Level Maker - Click to place, Scroll to change, Close window to save")
 screen = pygame.display.set_mode((500, 500))
@@ -16,9 +17,9 @@ def update_screen(clicked):
   for (row_idx, col_idx), tile in np.ndenumerate(tileList):
     if(x > col_idx*25 and x <= (col_idx + 1)*25 and y > row_idx*25 and y <= (row_idx + 1)*25):
       pygame.draw.rect(screen, lh.GRAY, (row_idx*25, col_idx*25, 25, 25))
-      pygame.draw.rect(screen, lh.getTileColor(current_type), (row_idx*25, col_idx*25, 25, 25), border_radius=8)
+      pygame.draw.rect(screen, lh.getTileColor(tile_types[int(current_type)]), (row_idx*25, col_idx*25, 25, 25), border_radius=8)
       if(clicked):
-        tileList[row_idx][col_idx] = int(current_type)
+        tileList[row_idx][col_idx] = tile_types[int(current_type)]
     else:
       pygame.draw.rect(screen, lh.getTileColor(tile), (row_idx*25, col_idx*25, 25, 25))
     

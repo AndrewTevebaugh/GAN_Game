@@ -28,9 +28,9 @@ if __name__ == "__main__":
   # if GPU is to be used
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   if torch.cuda.is_available():
-    num_episodes = 600
+    num_episodes = 2000
   else:
-    num_episodes = 300
+    num_episodes = 1000
 
   print("Running the game...")
   
