@@ -2,6 +2,9 @@ import pygame
 import numpy as np
 import levelHelper as lh
 
+types = [lh.tileType.WALL, lh.tileType.START, lh.tileType.HAZARD, lh.tileType.OPEN, lh.tileType.COIN, lh.tileType.DOOR]
+typeIdx = 0
+
 current_type = lh.tileType.OPEN
 tileList = np.zeros((20,20), dtype=int)
 pygame.init()
@@ -29,9 +32,11 @@ while is_running:
       is_running = False
     elif event.type == pygame.MOUSEBUTTONDOWN:
       if event.button == 4:  # Scroll wheel up
-        current_type = (6 + int(current_type) + 1)%6
+        typeIdx = (typeIdx + 1) % 6
+        current_type = types[typeIdx]
       elif event.button == 5:  # Scroll wheel down
-        current_type = (6 + int(current_type) - 1)%6
+        typeIdx = (typeIdx - 1) % 6
+        current_type = types[typeIdx]
       elif event.button == 1:
         clicked = True
     elif event.type == pygame.MOUSEBUTTONUP:
