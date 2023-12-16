@@ -5,13 +5,21 @@ import src.game.movement as mv
 import src.utils.levelHelper as lh
 from src.utils.constants import *
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+
 class Game:
   # Initialize the game
-  def __init__(self, type):
+  def __init__(self, type, torch_device):
     # DEBUG - Number correlates to agent being followed
     if(DEBUG_MODE > int(AGENT_CNT) or DEBUG_MODE < 0):
       print("Invalid Debug configuration!")
       exit()
+
+    # Set up pytorch device
+    self.torch_device = torch_device
 
     # Set up pygame stuff
     self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -41,7 +49,7 @@ class Game:
       # Create agent instances
       self.agentList = []
       for i in range(AGENT_CNT):
-        self.agentList.append(ag.Agent())
+        self.agentList.append(ag.Agent(self.torch_device))
 
       # Caption Stuff
       self.gen_num = 1
@@ -88,6 +96,7 @@ class Game:
     
     if(self.mode == 1):
       for index, agent in enumerate(self.agentList):
+
         agent_pos = agent.get_pos()
         # Calculate inputs for next iteration
         a_col_idx = int(agent_pos[0]//25)
@@ -107,22 +116,46 @@ class Game:
         else:
           # Get new agent position based on model output
           if(agent.finished == 0):
-            new_pos = mv.update_position(agent_pos[0], agent_pos[1], agent.get_output(inputs), agent.map)
+            action = agent.select_action(torch.tensor(inputs, dtype=torch.int, device=self.torch_device))
+            new_pos = mv.update_position(agent_pos[0], agent_pos[1], action, agent.map)
             agent.set_pos(new_pos)
+            # Check item pick ups
+            reward, new_hazardCooldown, door_reached, new_map = mv.check_pickUp(agent.map, agent_pos[0], agent_pos[1], agent.time_stopped, agent.get_hazardCooldown())
+            
+            for i in range(-AGENT_VISION_RADIUS, AGENT_VISION_RADIUS+1):
+              for j in range(-AGENT_VISION_RADIUS, AGENT_VISION_RADIUS+1):
+                if(a_col_idx + j >= 0 and a_col_idx + j < SCREEN_WIDTH/PLAYER_WIDTH and a_row_idx + i >= 0 and a_row_idx + i < SCREEN_HEIGHT/PLAYER_HEIGHT):
+                  inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = new_map[a_row_idx + i][a_col_idx + j]
+                else:
+                  inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = lh.tileType.WALL
+            new_inputs = torch.tensor(inputs, dtype=torch.int, device=self.torch_device)
+
+            # Log the transaction in replay memory
+            agent.memory.push(agent.map, action, new_inputs, reward)
+
+            # Update the new state
+            agent.map = new_map
+
+            # Perform optimization on policy network
+            agent.optimize_model()
+
+            # Soft update of the target network's weights
+            # θ′ ← τ θ + (1 −τ )θ′
+            target_net_state_dict = agent.target_net.state_dict()
+            policy_net_state_dict = agent.policy_net.state_dict()
+            for key in policy_net_state_dict:
+              target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
+            agent.target_net.load_state_dict(target_net_state_dict)
 
             if new_pos[0] - agent_pos[0] + new_pos[1] - agent_pos[1] == 0:
               agent.time_stopped += 1
             else:
               agent.time_stopped = 0
-
-          # Check item pick ups
-          pickUp_return = mv.check_pickUp(agent.map, agent_pos[0], agent_pos[1], agent.time_stopped, agent.get_hazardCooldown(), agent.score, agent.finished)
           
           # Give Rewards
-          agent.finished = pickUp_return[2] # If agent reached door
-          agent.set_score(pickUp_return[0]) 
-
-          agent.set_hazardCooldown(pickUp_return[1]-1)
+          agent.finished = door_reached # If agent reached door
+          agent.increment_score(reward)
+          agent.set_hazardCooldown(new_hazardCooldown)
 
       # If agent performance time is up, reset agents and level
       if self.perf_time == 0:
@@ -137,6 +170,7 @@ class Game:
         self.gen_num += 1
         self.tileList = np.loadtxt(MAP_STRING, dtype=int)
         for agent in self.agentList:
+          agent.steps_done = 0
           agent.set_score(0)
           agent.time_stopped = 0
           agent.coins = 0

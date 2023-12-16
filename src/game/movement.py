@@ -5,17 +5,17 @@ import src.utils.levelHelper as lh
 from src.utils.constants import *
 
 # Updates Position based on player input
-def update_position(playerX, playerY, keys, tileList):
-  if(keys[2] and not keys[3]):
+def update_position(playerX, playerY, inp, tileList):
+  if(inp == 2):
     newY = playerY - 25.0 * PLAYER_VELOCITY
-  elif(keys[3] and not keys[2]):
+  elif(inp == 3):
     newY = playerY + 25.0 * PLAYER_VELOCITY
   else:
     newY = playerY
 
-  if(keys[1] and not keys[0]):
+  if(inp == 1):
     newX = playerX + 25.0 * PLAYER_VELOCITY
-  elif(keys[0] and not keys[1]):
+  elif(inp == 0):
     newX = playerX - 25.0 * PLAYER_VELOCITY
   else:
     newX = playerX
@@ -59,24 +59,27 @@ def check_collisions(oldX, newX, oldY, newY, tileList):
 
   return (newX, newY)
 
-def check_pickUp(agent_map, posX, posY, time_stopped, hazardCooldown, score, door_reached):
+def check_pickUp(agent_map, posX, posY, time_stopped, hazardCooldown):
   playerRect = pygame.Rect(posX, posY, 25, 25)
+  score = 0
+  door_reached = 0
+  new_map = np.copy(agent_map)
   for (row_idx, col_idx), tile in np.ndenumerate(agent_map):
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN and agent_map[row_idx][col_idx] == lh.tileType.COIN):
-      agent_map[row_idx][col_idx] = lh.tileType.TRAVERSED
-      score += 250
+      new_map[row_idx][col_idx] = lh.tileType.TRAVERSED
+      score += 5
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.HAZARD and hazardCooldown < 0):
-      score -= 250
+      score -= 5
       hazardCooldown = 60
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.DOOR and door_reached != 1):
-      score += 1000
+      score += 20
       door_reached = 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.OPEN and door_reached != 1):
-      agent_map[row_idx][col_idx] = lh.tileType.TRAVERSED
-      score += 25
+      new_map[row_idx][col_idx] = lh.tileType.TRAVERSED
+      score += 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.START):
       score -= 5
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.TRAVERSED and door_reached != 1 and time_stopped > 20):
       score -= 1
-  return (score, hazardCooldown, door_reached, agent_map)
+  return (score, hazardCooldown, door_reached, new_map)
