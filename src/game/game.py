@@ -153,7 +153,6 @@ class Game:
         self.time_stopped += 1
       else:
         self.time_stopped = 0
-      print(self.time_stopped)
       (temp_score, self.hazardCooldown, self.finished, self.tileList) = mv.check_pickUp(self.tileList, self.playerX, self.playerY, self.time_stopped, self.hazardCooldown, self.score, self.finished)
       self.score = temp_score
 
