@@ -80,6 +80,7 @@ class Agent:
     rw = np.random.rand(self.weights[lay].shape[1])*AGENT_NN_CHANGE_RATE - AGENT_NN_CHANGE_RATE//2
     # self.weights[lay][row][col] += rw
     self.weights[lay][row] += rw
+    # self.weights[lay][row] += rw
 
 def reproduce(p1, p2, o1, o2):
   lay = np.random.randint(len(AGENT_NN_DIMENSIONS)-1)

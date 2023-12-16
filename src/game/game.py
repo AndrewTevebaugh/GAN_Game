@@ -126,6 +126,7 @@ class Game:
 
       # If agent performance time is up, reset agents and level
       if self.perf_time == 0:
+        MAP_STRING = "src\\game\\levels\\cycleLevel" + str(np.random.randint(6) + 1) + ".txt"
         half = len(self.agentList)//2
         self.agentList.sort(key = lambda x: x.score)
         self.top_score = self.agentList[AGENT_CNT-1].score
@@ -133,10 +134,17 @@ class Game:
           ag.reproduce(self.agentList[half+2*i], self.agentList[half+2*i+1], self.agentList[2*i], self.agentList[2*i+1])
           self.agentList[2*i].mutate() # Mutate Offspring 1
           self.agentList[2*i+1].mutate() # Mutate Offspring 2
-        self.perf_time = TRIAL_TIME + 60*(self.gen_num//5) # Was //40 - determine the rate at which perf time increases
+        self.perf_time = TRIAL_TIME + TRIAL_INCREASE_TIME*(self.gen_num//TRIAL_INCREASE_RATE) # Was //40 - determine the rate at which perf time increases
         self.gen_num += 1
         self.tileList = np.loadtxt(MAP_STRING, dtype=int)
+        # Determine and save Start and Finish locations
+        for (row_idx, col_idx), tile in np.ndenumerate(self.tileList):
+          if(tile == lh.tileType.START):
+            self.start_pos = (col_idx*25, row_idx*25)
+          elif(tile == lh.tileType.DOOR):
+            self.door_pos = (col_idx*25, row_idx*25)
         for agent in self.agentList:
+          agent.set_pos(self.start_pos)
           agent.set_score(0)
           agent.time_stopped = 0
           agent.coins = 0
