@@ -75,12 +75,16 @@ class Agent:
     self.steps_done += 1
     if sample > eps_threshold:
       with torch.no_grad():
-        # t.max(1) will return the largest column value of each row.
-        # second column on max result is index of where max element was
-        # found, so we pick action with the larger expected reward.
-        return self.policy_net(state).max(1).indices.view(1, 1)
+        # Get action with highest likely reward
+        max_out = self.policy_net(state)[0].item()
+        max_idx = 0
+        for i, x in enumerate(self.policy_net(state)):
+          if x.item() > max_out:
+            max_out = x.item()
+            max_idx = i
+        return torch.tensor([max_idx], device=self.device, dtype=torch.long)
     else:
-      return torch.tensor([[random.choice(action_space)]], device=self.device, dtype=torch.long)
+      return torch.tensor([random.choice(action_space)], device=self.device, dtype=torch.long)
 
   def optimize_model(self):
     if len(self.memory) < BATCH_SIZE:
@@ -93,11 +97,12 @@ class Agent:
 
     # Compute a mask of non-final states and concatenate the batch elements
     # (a final state would've been the one after which simulation ended)
-    non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=device, dtype=torch.bool)
-    non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
-    state_batch = torch.cat(batch.state)
-    action_batch = torch.cat(batch.action)
-    reward_batch = torch.cat(batch.reward)
+    non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=self.device, dtype=torch.bool)
+    non_final_next_states = torch.stack([s for s in batch.next_state if s is not None])
+
+    state_batch = torch.stack(batch.state)
+    action_batch = torch.stack(batch.action)
+    reward_batch = torch.stack(batch.reward)
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken. These are the actions which would've been taken
@@ -109,7 +114,7 @@ class Agent:
     # on the "older" target_net; selecting their best reward with max(1).values
     # This is merged based on the mask, such that we'll have either the expected
     # state value or 0 in case the state was final.
-    next_state_values = torch.zeros(BATCH_SIZE, device=device)
+    next_state_values = torch.zeros(BATCH_SIZE, device=self.device)
     with torch.no_grad():
       next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1).values
     # Compute the expected Q values
@@ -117,12 +122,12 @@ class Agent:
 
     # Compute Huber loss
     criterion = nn.SmoothL1Loss()
-    loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
+    loss = criterion(state_action_values, expected_state_action_values)
 
     # Optimize the model
     self.optimizer.zero_grad()
     loss.backward()
     # In-place gradient clipping
-    torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
+    torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
     self.optimizer.step()
 

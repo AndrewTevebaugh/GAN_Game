@@ -26,7 +26,7 @@ class Game:
     self.clock = pygame.time.Clock()
 
     # Loads map from save file
-    self.tileList = np.loadtxt(MAP_STRING, dtype=int) # TODO Add a configurable level loader
+    self.tileList = np.loadtxt(MAP_STRING, dtype=float) # TODO Add a configurable level loader
 
     if(int(type) == 0):
       self.mode = 0
@@ -66,7 +66,7 @@ class Game:
 
       # Initialize agent map and set position to the start
       for agent in self.agentList:
-        agent.map = np.loadtxt(MAP_STRING, dtype=int)
+        agent.map = np.loadtxt(MAP_STRING, dtype=float)
         agent.set_pos(self.start_pos)
         
       # Marks game as running
@@ -110,17 +110,20 @@ class Game:
             else:
               inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = lh.tileType.WALL
         # inputs[len(inputs)-5:] = [int(self.door_pos[0]//25), int(self.door_pos[1]//25), int(agent_pos[0]//25), int(agent_pos[1]//25), agent.get_delta_score()]
-        
+        old_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device)
+
         if self.perf_time == 0:
           agent.set_pos(self.start_pos)
         else:
           # Get new agent position based on model output
           if(agent.finished == 0):
-            action = agent.select_action(torch.tensor(inputs, dtype=torch.int, device=self.torch_device))
-            new_pos = mv.update_position(agent_pos[0], agent_pos[1], action, agent.map)
+            action = agent.select_action(torch.tensor(inputs, dtype=torch.float32, device=self.torch_device))
+            action_itm = action.item()
+            new_pos = mv.update_position(agent_pos[0], agent_pos[1], action_itm, agent.map)
             agent.set_pos(new_pos)
             # Check item pick ups
             reward, new_hazardCooldown, door_reached, new_map = mv.check_pickUp(agent.map, agent_pos[0], agent_pos[1], agent.time_stopped, agent.get_hazardCooldown())
+            reward = torch.tensor([reward], dtype=torch.int, device=self.torch_device)
             
             for i in range(-AGENT_VISION_RADIUS, AGENT_VISION_RADIUS+1):
               for j in range(-AGENT_VISION_RADIUS, AGENT_VISION_RADIUS+1):
@@ -128,10 +131,10 @@ class Game:
                   inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = new_map[a_row_idx + i][a_col_idx + j]
                 else:
                   inputs[(2*AGENT_VISION_RADIUS+1)*(i+AGENT_VISION_RADIUS) + (j+AGENT_VISION_RADIUS)] = lh.tileType.WALL
-            new_inputs = torch.tensor(inputs, dtype=torch.int, device=self.torch_device)
+            new_inputs = torch.tensor(inputs, dtype=torch.float32, device=self.torch_device)
 
             # Log the transaction in replay memory
-            agent.memory.push(agent.map, action, new_inputs, reward)
+            agent.memory.push(old_inputs, action, new_inputs, reward)
 
             # Update the new state
             agent.map = new_map
@@ -162,19 +165,15 @@ class Game:
         half = len(self.agentList)//2
         self.agentList.sort(key = lambda x: x.score)
         self.top_score = self.agentList[AGENT_CNT-1].score
-        for i in range(half//2):
-          ag.reproduce(self.agentList[half+2*i], self.agentList[half+2*i+1], self.agentList[2*i], self.agentList[2*i+1])
-          self.agentList[2*i].mutate() # Mutate Offspring 1
-          self.agentList[2*i+1].mutate() # Mutate Offspring 2
         self.perf_time = TRIAL_TIME + 60*(self.gen_num//5) # Was //40 - determine the rate at which perf time increases
         self.gen_num += 1
-        self.tileList = np.loadtxt(MAP_STRING, dtype=int)
+        self.tileList = np.loadtxt(MAP_STRING, dtype=float)
         for agent in self.agentList:
           agent.steps_done = 0
           agent.set_score(0)
           agent.time_stopped = 0
           agent.coins = 0
-          agent.map = np.loadtxt(MAP_STRING, dtype=int)
+          agent.map = np.loadtxt(MAP_STRING, dtype=float)
 
       # Otherwise, decrement time
       else:
