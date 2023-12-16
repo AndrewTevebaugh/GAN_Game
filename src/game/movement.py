@@ -81,5 +81,5 @@ def check_pickUp(agent_map, posX, posY, time_stopped, hazardCooldown):
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.START):
       score -= 1 # was -= 5
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.TRAVERSED and door_reached != 1 and time_stopped > 20):
-      score -= 1 # was -= 1
+      score -= 3 # was -= 1
   return (score, hazardCooldown, door_reached, new_map)

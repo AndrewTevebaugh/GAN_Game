@@ -49,7 +49,7 @@ class Game:
       # Create agent instances
       self.agentList = []
       for i in range(AGENT_CNT):
-        self.agentList.append(ag.Agent(self.torch_device))
+        self.agentList.append(ag.Agent(i, self.torch_device))
 
       # Caption Stuff
       self.gen_num = 1
@@ -168,12 +168,14 @@ class Game:
         self.perf_time = TRIAL_TIME + (self.gen_num//3) # Was //40 - determine the rate at which perf time increases
         self.gen_num += 1
         self.tileList = np.loadtxt(MAP_STRING, dtype=float)
-        for agent in self.agentList:
+        for i, agent in enumerate(self.agentList):
           agent.steps_done = 0
           agent.set_score(0)
           agent.time_stopped = 0
           agent.coins = 0
           agent.map = np.loadtxt(MAP_STRING, dtype=float)
+          torch.save(agent.policy_net.state_dict(), f'./src/agent/agent_{i}_policy_net.pt')
+          torch.save(agent.target_net.state_dict(), f'./src/agent/agent_{i}_target_net.pt')
 
       # Otherwise, decrement time
       else:

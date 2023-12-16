@@ -4,7 +4,7 @@ import numpy as np
 DEBUG_MODE = 1
 
 # Game Constants
-MAP_STRING = "src\\game\\levels\\testLevel2.txt"
+MAP_STRING = "src\\game\\levels\\testLevel.txt"
 PLAYER_VELOCITY = 1 # 0.2
 SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 500
@@ -32,7 +32,7 @@ AGENT_NN_CHANGE_RATE = 50
 # TAU is the update rate of the target network
 # LR is the learning rate of the ``AdamW`` optimizer
 BATCH_SIZE = 128
-GAMMA = 0.999
+GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 1000

@@ -11,12 +11,13 @@ action_space = [0, 1, 2, 3]
 n_observations = (AGENT_VISION_RADIUS*2+1)**2
 
 class Agent:
-  def __init__(self, device):
+  def __init__(self, agent_id, device):
     self.map = np.zeros((SCREEN_SIZE, SCREEN_SIZE))
     self.posXY = (0, 0)
     self.outputs = [0, 0, 0, 0]
     self.score = 0
     self.steps_done = 0
+    self.id = agent_id
     self.device = device
 
     # DQN Model objects
