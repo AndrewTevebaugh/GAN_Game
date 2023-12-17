@@ -76,7 +76,11 @@ def check_pickUp(agent_map, posX, posY, time_stopped, hazardCooldown):
       score += 20
       door_reached = 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.OPEN and door_reached != 1):
-      new_map[row_idx][col_idx] = lh.tileType.TRAVERSED
+      for i in range(-1, 2):
+        for j in range(-1, 2):
+          if(row_idx + i >= 0 and row_idx + i < SCREEN_SIZE and col_idx + j >= 0 and col_idx + j < SCREEN_SIZE):
+            if(new_map[row_idx + i][col_idx + j] == lh.tileType.OPEN):
+              new_map[row_idx + i][col_idx + j] = lh.tileType.TRAVERSED
       score += 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.START):
       score -= 3 # was -= 5

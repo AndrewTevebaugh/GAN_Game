@@ -165,7 +165,7 @@ class Game:
               target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
             agent.target_net.load_state_dict(target_net_state_dict)
 
-            if new_pos[0] - agent_pos[0] + new_pos[1] - agent_pos[1] == 0:
+            if new_pos[0] - agent_pos[0] <= 1 and new_pos[1] - agent_pos[1] <= 1:
               agent.time_stopped += 1
             else:
               agent.time_stopped = 0
