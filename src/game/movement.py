@@ -65,20 +65,23 @@ def check_pickUp(agent_map, posX, posY, time_stopped, hazardCooldown, score, doo
     tileRect = pygame.Rect(col_idx*25, row_idx*25, 25, 25)
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.COIN and agent_map[row_idx][col_idx] == lh.tileType.COIN):
       agent_map[row_idx][col_idx] = lh.tileType.TRAVERSED
-      score += 2500
+      score += 5
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.HAZARD and hazardCooldown < 0):
-      score -= 2500
+      score -= 5
       hazardCooldown = 60
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.DOOR and door_reached != 1):
-      score += 10000
+      score += 20
       door_reached = 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.OPEN and door_reached != 1):
-      agent_map[row_idx][col_idx] = lh.tileType.TRAVERSED
-      score += 250
+      # agent_map[row_idx][col_idx] = lh.tileType.TRAVERSED
+      for i in range(-1, 2):
+        for j in range(-1, 2):
+          if(row_idx + i >= 0 and row_idx + i < SCREEN_SIZE and col_idx + j >= 0 and col_idx + j < SCREEN_SIZE):
+            if(agent_map[row_idx + i][col_idx + j] == lh.tileType.OPEN):
+              agent_map[row_idx + i][col_idx + j] = lh.tileType.TRAVERSED
+      score += 1
     if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.START):
-      score -= 5
-    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.TRAVERSED and door_reached != 1):# and time_stopped > 20):
-      score -= 1
-  if time_stopped > 10:
-    score -= 10
+      score -= 3
+    if(pygame.Rect.colliderect(playerRect, tileRect) and tile == lh.tileType.TRAVERSED and door_reached != 1 and score >= 3):# and time_stopped > 20):
+      score -= 3
   return (score, hazardCooldown, door_reached, agent_map)

@@ -4,8 +4,8 @@ import numpy as np
 DEBUG_MODE = 1
 
 # Game Constants
-MAP_STRING = "src\\game\\levels\\cycleLevel1.txt"
-PLAYER_VELOCITY = 0.2 # 0.2
+MAP_STRING = "src\\game\\levels\\testlevel3.txt"
+PLAYER_VELOCITY = 1 # 0.2
 SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 500
 SCREEN_SIZE = 20

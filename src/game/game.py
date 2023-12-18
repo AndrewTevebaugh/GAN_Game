@@ -126,7 +126,7 @@ class Game:
 
       # If agent performance time is up, reset agents and level
       if self.perf_time == 0:
-        MAP_STRING = "src\\game\\levels\\cycleLevel" + str(np.random.randint(6) + 1) + ".txt"
+        # MAP_STRING = "src\\game\\levels\\cycleLevel" + str(np.random.randint(6) + 1) + ".txt"
         half = len(self.agentList)//2
         self.agentList.sort(key = lambda x: x.score)
         self.top_score = self.agentList[AGENT_CNT-1].score
@@ -157,7 +157,8 @@ class Game:
       old_pos = (self.playerX, self.playerY)
       (self.playerX, self.playerY) = mv.update_position(self.playerX, self.playerY, self.keys, self.tileList)
 
-      if self.playerX - old_pos[0] + self.playerY - old_pos[1] == 0:
+      # if self.playerX - old_pos[0] + self.playerY - old_pos[1] == 0:
+      if new_pos[0] - agent_pos[0] <= 1 and new_pos[1] - agent_pos[1] <= 1:
         self.time_stopped += 1
       else:
         self.time_stopped = 0
